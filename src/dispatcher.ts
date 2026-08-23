@@ -68,7 +68,12 @@ export class DispatchingAgentFactory implements AgentFactory {
     const iso = ctx.isolate('agents')
     iso.provide('agents', agentsFacade(realAgents as object, (factory) => { this.captured.resolve(factory) }))
     iso.plugin(loopPlugin, loopConfig)
-    ctx.effect(() => ctx.agents.setFactory(this), 'acpAgentLoop.setFactory()')
+    // Register on the REAL registry instance captured above: after the
+    // iso.provide, this plugin fiber is itself a provider of `agents`, so a
+    // `ctx.agents` read here would resolve to the facade and the registration
+    // would capture itself instead of reaching the registry.
+    const registry = realAgents as { setFactory(factory: AgentFactory): () => void }
+    ctx.effect(() => registry.setFactory(this), 'acpAgentLoop.setFactory()')
   }
 
   /** Whether the options select an ACP provider (explicit, else the live default). */
