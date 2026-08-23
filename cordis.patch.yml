@@ -1,7 +1,11 @@
 # Profile patch layer shipped by dsh-acp-agent-loop: disable the stock loop
 # (the registry accepts exactly one agent factory) and insert the dispatcher.
-# Edit the agents list in your profile's own cordis.patch.yml to add entries;
-# an id-targeted patch REPLACES the whole config block.
+# Override the acp-agent-loop row in your profile's own cordis.patch.yml to
+# change the agents list; an id-targeted patch REPLACES the whole config block.
+#
+# The claude-code entry sets no ANTHROPIC_API_KEY: the adapter falls back to
+# the machine's Claude Code login (~/.claude credentials). Export the key into
+# the entry's env instead to pin API-key auth.
 - id: agent-loop
   disabled: true
 - insert:
@@ -11,10 +15,8 @@
         agents:
           - name: claude-code
             command: npx
-            args: ['@zed-industries/claude-code-acp']
-            permission: reject
-            env:
-              ANTHROPIC_API_KEY: !!js process.env.ANTHROPIC_API_KEY ?? ''
+            args: ['-y', '@agentclientprotocol/claude-agent-acp']
+            permission: allow
             models:
               - id: default
                 name: Claude Code (agent default)
